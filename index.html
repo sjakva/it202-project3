@@ -28,10 +28,10 @@
           "clouds2.png";
     
       // GAME DICTIONARIES                         // FIXME: adjust numbers after basic structure set
-    let player = {x:100, y:100, radius:10};
+    let player = {x:100, y:100, radius:10, speed:5};
     let benefit = {x:200, y:300, radius:20};
     let harm = {x:300, y:400, radius:30};
-    let game = {score: 0, lives: 3, level: 1};
+    let game = {score: 0, lives: 3, level: 1, state:true};
     let cloudsBack = {x:0, y:0};
     let cloudsFront = {x:450, y:200};
     
@@ -57,19 +57,45 @@
       
       function gameOverScreen() {
           // clear screen
+          ctx.clearRect (0,0, c.width, c.height);
           // print message
+          ctx.drawImage(background, 0, 0, c.width, c.height);
+          ctx.fillStyle = "red";
+          ctx.fillText("G A M E   O V E R", 170,250);
           // print score
+          ctx.fillStyle = "green";
+          ctx.fillText("Score: " + game["score"], 170,300);
           // option to start again
       }
       
-      function moveUp() {
-          player["y"] += 1
-      }
-      function moveDown() {
-          player["y"] -= 1
+      function instructionsScreen() {
+          // clear screen
+          // print message
+          // option to start 
       }
       
-
+      // EVENT HANDLERS
+      function moveUp(e) {
+          console.log(e);
+          if (e.key == "ArrowUp" || e.code == "KeyW") {
+              player["y"] -= player["speed"];
+          }
+      }
+      function moveDown(e) {
+          console.log(e);
+          if (e.key == "ArrowDown" || e.code == "KeyS") {
+             player["y"] += player["speed"]; 
+          }
+      }
+      
+          // EVENT LISTENERS                                      
+      // UP
+      window.addEventListener("keydown", moveUp);
+      
+      // DOWN
+      window.addEventListener("keydown", moveDown);
+    
+        // loop
     const draw = () => {
         
       // clear
@@ -87,6 +113,17 @@
       cloudsBack["x"] -= 2;
       cloudsFront["x"] -= 1;
         
+      if (are_colliding(player, harm) == true) {
+          game["lives"] -= 1;
+          harm["x"] = harm["radius"] + c.width;
+          harm["y"] = Math.floor(Math.random() * 480 + 20);
+      }
+        
+      if (are_colliding(player, benefit) == true) {
+          game["score"] += 100;
+          benefit["x"] = benefit["radius"] + c.width;
+          benefit["y"] = Math.floor(Math.random() * 480 + 20);
+      }
 
       // handle edge conditions                              // FIXME: fix bounds?
       if (harm["x"] < -harm["radius"]) {                     // if out of bounds
@@ -136,20 +173,27 @@
       ctx.fillText("Score: " + game["score"], 25,25);
       ctx.fillText("Level: " + game["level"], 25,45);
         
-      // EVENT HANDLERS                                         // FIXME: function syntax?
-      // UP
-//       ctx.addEventListener("ArrowUp", moveUp);
-        //window.addEventListener("KeyW", moveUp());
-        
-      // DOWN
-//       ctx.addEventListener("ArrowDown", moveDown);
-        //window.addEventListener("KeyS", moveDown());
+      if (game["lives"] == 0) {
+          game["state"] = false;
+      }
+      else {
+          game["state"] = true;
+      }
         
       // repeat
-      window.requestAnimationFrame(draw);
+      if (game["state"] == true) {
+          window.requestAnimationFrame(draw);
+      }
+      else {
+          gameOverScreen();
+      }
+      
+      //window.requestAnimationFrame(draw);
     }
+    
 
     draw();        // FIXME: change game-loop-structure once instructions and game-over screen decided 
+     
   </script>
 
 
