@@ -29,8 +29,16 @@
     
       // GAME DICTIONARIES                         // FIXME: adjust numbers after basic structure set
     let player = {x:100, y:100, radius:10, speed:5};
-    let benefit = {x:200, y:300, radius:20};
-    let harm = {x:300, y:400, radius:30};
+      
+//     let benefit = {x:200, y:300, radius:20};
+//     let harm = {x:300, y:400, radius:30};
+    let benefit = new Image();
+      benefit.src =
+          "benefit.png";
+    let harm = new Image();
+      harm.src = 
+          "harm.png";
+      
     let game = {score: 0, lives: 3, level: 1, state:true};
     let cloudsBack = {x:0, y:0};
     let cloudsFront = {x:450, y:200};
@@ -60,17 +68,21 @@
           ctx.clearRect (0,0, c.width, c.height);
           // print message
           ctx.drawImage(background, 0, 0, c.width, c.height);
+          ctx.font = "30px Arial";
           ctx.fillStyle = "red";
-          ctx.fillText("G A M E   O V E R", 170,250);
+          ctx.fillText("G A M E   O V E R", 100,250);
           // print score
+          ctx.font = "30px Arial";
           ctx.fillStyle = "green";
-          ctx.fillText("Score: " + game["score"], 170,300);
-          // option to start again
+          ctx.fillText("Score: " + game["score"], 150,300);
+          // option to start again?
       }
       
       function instructionsScreen() {
           // clear screen
+          ctx.clearRect (0, 0, c.width, c.height);
           // print message
+          ctx.drawImage(background, 0,0, c.width, c.height);
           // option to start 
       }
       
@@ -168,6 +180,7 @@
       ctx.fill();
         
       // display     Lives,    Score,    and Level
+      ctx.font = "12px Arial"
       ctx.fillStyle = "blue";
       ctx.fillText("Lives: " + game["lives"], 450,25);
       ctx.fillText("Score: " + game["score"], 25,25);
