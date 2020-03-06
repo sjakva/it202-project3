@@ -15,53 +15,64 @@
     let c = document.querySelector("#canvas");
     let ctx = c.getContext("2d");
       
+    let instruc = new Image();
+            instruc.src =
+              "instructionsGame.png";
+      
     let background = new Image();                  
-      background.src =
-          "https://webgradients.com/public/webgradients_png/008%20Rainy%20Ashville.png";
+            background.src =
+              "https://webgradients.com/public/webgradients_png/008%20Rainy%20Ashville.png";
       
-      let bgClouds = new Image();
-        bgClouds.src =
-          "clouds1.png";
+    let bgClouds = new Image();
+            bgClouds.src =
+              "clouds1.png";
       
-      let fgClouds = new Image();
-        fgClouds.src =
-          "clouds2.png";
+    let fgClouds = new Image();
+            fgClouds.src =
+              "clouds2.png";
     
-      // GAME DICTIONARIES                         // FIXME: adjust numbers after basic structure set
-    let player = {x:100, y:100, radius:10, speed:5};
+      // GAME DICTIONARIES/OBJECTS                        
       
-//     let benefit = {x:200, y:300, radius:20};
-//     let harm = {x:300, y:400, radius:30};
-    let benefit = new Image();
-      benefit.src =
-          "benefit.png";
-    let harm = new Image();
-      harm.src = 
-          "harm.png";
+    let player = {x:100, y:100, speed:4, width:40, height:40};
+      let p = new Image();
+          p.src =
+              "kirby.png";
+    let harm = {x:300, y:400, speed:2, width:30, height:30};
+        let h = new Image();
+          h.src = 
+              "harm.png";
+    let benefit = {x:200, y:300, speed:3, width:30, height:30};
+        let b = new Image();
+          b.src =
+              "benefit.png";
       
     let game = {score: 0, lives: 3, level: 1, state:true};
-    let cloudsBack = {x:0, y:0};
-    let cloudsFront = {x:450, y:200};
+    let cloudsBack = {x:0, y:0, speed:3, width:1000, height:1000};
+    let cloudsFront = {x:450, y:200, speed:4, width:250, height:250};
+    let switchVar = false;
     
       // FUNCTIONS // 
 
-      // FIXME: revise how to implement python collision into JS -----------------------------
-      //     and change to detect image collision 
-      function are_colliding(obj1, obj2) {
-          let collision = false;
-        
-          let radii_sum = obj1["radius"] + obj2["radius"];
-          let dx = obj1["x"] - obj2["x"]; // check coordinate thing
-          let dy = obj1["y"] - obj2["y"];    
-          let distance = Math.sqrt(dx*dx + dy*dy);
-    
-          if ( distance < radii_sum ) {
-            collision = true;
-          }
-          
+      function are_colliding(obj1, obj2) {     
+          let collision = false;              
+             if ( obj1["x"] < obj2["x"]+obj2["width"] && 
+                  obj1["x"]+obj1["width"] > obj2["x"] &&
+                  obj1["y"] < obj2["y"]+obj2["height"] && 
+                  obj1["y"]+obj1["height"] > obj2["y"]) {
+                 collision = true;
+             }
           return collision;
       }
-      // -------------------------------------------------------------------------------------
+      
+      function instructions(e) {
+          // clear screen
+          ctx.clearRect (0, 0, c.width, c.height);
+          // print message
+          ctx.drawImage(instruc, 0,0, c.width, c.height);
+          if (e.code == "Space" || e.code == "Enter") {
+              switchVar = true;
+          }
+      }
       
       function gameOverScreen() {
           // clear screen
@@ -78,13 +89,6 @@
           // option to start again?
       }
       
-      function instructionsScreen() {
-          // clear screen
-          ctx.clearRect (0, 0, c.width, c.height);
-          // print message
-          ctx.drawImage(background, 0,0, c.width, c.height);
-          // option to start 
-      }
       
       // EVENT HANDLERS
       function moveUp(e) {
@@ -94,13 +98,30 @@
           }
       }
       function moveDown(e) {
-          console.log(e);
           if (e.key == "ArrowDown" || e.code == "KeyS") {
              player["y"] += player["speed"]; 
           }
       }
       
-          // EVENT LISTENERS                                      
+           
+      function instructionsScreen(e) {
+          // clear screen
+          ctx.clearRect (0, 0, c.width, c.height);
+          // print message
+          ctx.drawImage(instruc, 0,0, c.width, c.height);
+          if (e.key == " " || e.code == "Enter") {
+              switchVar = true;
+          }
+          else {
+              ctx.drawImage(instruc, 0,0, c.width, c.height);
+          }
+      }
+         
+          // EVENT LISTENERS 
+      
+      // INSTRUCTIONS
+      window.addEventListener("keydown", instructions);
+      
       // UP
       window.addEventListener("keydown", moveUp);
       
@@ -108,85 +129,132 @@
       window.addEventListener("keydown", moveDown);
     
         // loop
-    const draw = () => {
+    function draw() {
         
       // clear
       ctx.clearRect (0,0, c.width, c.height);
         
       // draw background 
       ctx.drawImage(background, 0, 0, c.width, c.height);
-        ctx.drawImage(bgClouds, cloudsBack["x"], cloudsBack["y"], c.width*2, c.height*2);
-        ctx.drawImage(fgClouds, cloudsFront["x"], cloudsBack["y"], c.width/2, c.height/2);
+        ctx.drawImage(bgClouds, cloudsBack["x"], cloudsBack["y"], cloudsBack["width"], cloudsBack["height"]);
+        ctx.drawImage(fgClouds, cloudsFront["x"], cloudsBack["y"], cloudsFront["width"], cloudsFront["height"]);
 
       // update values
-      harm["x"] -= 5;                                        // FIXME: add "speed" to dict. -> update
-      benefit["x"] -= 3;
+      harm["x"] -= harm["speed"];       
+      benefit["x"] -= benefit["speed"];
         
-      cloudsBack["x"] -= 2;
-      cloudsFront["x"] -= 1;
+      cloudsBack["x"] -= 1;
+      cloudsFront["x"] -= 2;
         
       if (are_colliding(player, harm) == true) {
           game["lives"] -= 1;
-          harm["x"] = harm["radius"] + c.width;
-          harm["y"] = Math.floor(Math.random() * 480 + 20);
+          harm["x"] = harm["width"] + c.width;
+          harm["y"] = Math.floor(Math.random() * 461 + 20);
       }
         
       if (are_colliding(player, benefit) == true) {
-          game["score"] += 100;
-          benefit["x"] = benefit["radius"] + c.width;
-          benefit["y"] = Math.floor(Math.random() * 480 + 20);
+          game["score"] += 50;
+          benefit["x"] = benefit["width"] + c.width;
+          benefit["y"] = Math.floor(Math.random() * 461 + 20);
       }
+        
+      if (game["score"] == 100) {
+          game["level"] = 2;
+          player["speed"] = 5;
+          harm["speed"] = 3;
+          benefit["speed"] = 4;
+          cloudsBack["speed"] = 3;
+          cloudsFront["speed"] = 4;
+      }
+      if (game["score"] == 200) {
+              game["level"] = 3;
+              player["speed"] = 6;
+              harm["speed"] = 3;
+              benefit["speed"] = 4;
+              cloudsBack["speed"] = 2;
+              cloudsFront["speed"] += 5;
+      }
+      if (game["score"] == 300) {
+                  game["level"] = 3;
+                  player["speed"] = 6;
+                  harm["speed"] = 4;
+                  benefit["speed"] = 5;
+                  cloudsBack["speed"] = 1;
+                  cloudsFront["speed"] = 6;
+              }
+      if (game["score"] == 500) {
+                  game["level"] = 4;
+                  player["speed"] = 6;
+                  harm["speed"] = 5;
+                  benefit["speed"] = 5;
+                  cloudsBack["speed"] = 1;
+                  cloudsFront["speed"] = 6;
+              }
+       if (game["score"] == 1000) {
+                  game["level"] = 5;
+                  player["speed"] = 6;
+                  harm["speed"] = 6;
+                  benefit["speed"] = 6;
+                  cloudsBack["speed"] = 1;
+                  cloudsFront["speed"] = 6;
+              }
 
-      // handle edge conditions                              // FIXME: fix bounds?
-      if (harm["x"] < -harm["radius"]) {                     // if out of bounds
-        harm["x"] = harm["radius"] + c.width;                // reset x coord & 
-        harm["y"] = Math.floor(Math.random() * 480 + 20);    // random y coord
+
+      // handle edge conditions                              
+      if (harm["x"] < -harm["width"]) {                                 // if out of bounds
+        harm["x"] = harm["width"] + c.width;                            // reset x coord & 
+        harm["y"] = Math.floor(Math.random() * 480 + 20);               // random y coord
       }
       
-      if (benefit["x"] < -benefit["radius"]) {
-        benefit["x"] = benefit["radius"] + c.width
+      if (benefit["x"] < -benefit["width"]) {
+        benefit["x"] = benefit["width"] + c.width;
         benefit["y"] = Math.floor(Math.random() * 480 + 20);
       }
         
-      if (cloudsFront["x"] < -800) {
-        cloudsFront["x"] = c.width - 100
+      if (cloudsFront["x"] < -1000) {
+        cloudsFront["x"] = cloudsFront["width"] + c.width;
         cloudsFront["y"] = Math.floor(Math.random() * 480 + 20);
       }
         
-      if (cloudsBack["x"] < -800) {
-        cloudsBack["x"] = c.width - 100
+      if (cloudsBack["x"] < -cloudsBack["width"]) {
+        cloudsBack["x"] = cloudsBack["width"] + c.width;
         cloudsBack["y"] = Math.floor(Math.random() * 480 + 20);
       }
 
+//       // draw harm object
+//       ctx.beginPath();
+//       ctx.arc(harm["x"],harm["y"],harm["radius"],0, Math.PI*2);
+//       ctx.closePath();
+//       ctx.fillStyle = "orange";
+//       ctx.fill();        
+//       // draw benefit object
+//       ctx.beginPath();
+//       ctx.arc(benefit["x"],benefit["y"],benefit["radius"],0, Math.PI*2);
+//       ctx.closePath();
+//       ctx.fillStyle = "green";
+//       ctx.fill();
+//       // draw player object
+//       ctx.beginPath();
+//       ctx.arc(player["x"],player["y"],player["radius"],0, Math.PI*2);
+//       ctx.closePath();
+//       ctx.fillStyle = "cyan";
+//       ctx.fill();
+
       // draw harm object
-      ctx.beginPath();
-      ctx.arc(harm["x"],harm["y"],harm["radius"],0, Math.PI*2);
-      ctx.closePath();
-      ctx.fillStyle = "orange";
-      ctx.fill();
-        
+      ctx.drawImage(h, harm["x"],harm["y"], harm["width"], harm["height"]);        
       // draw benefit object
-      ctx.beginPath();
-      ctx.arc(benefit["x"],benefit["y"],benefit["radius"],0, Math.PI*2);
-      ctx.closePath();
-      ctx.fillStyle = "green";
-      ctx.fill();
-        
+      ctx.drawImage(b, benefit["x"],benefit["y"], benefit["width"], benefit["height"]);
       // draw player object
-      ctx.beginPath();
-      ctx.arc(player["x"],player["y"],player["radius"],0, Math.PI*2);
-      ctx.closePath();
-      ctx.fillStyle = "cyan";
-      ctx.fill();
+      ctx.drawImage(p, player["x"],player["y"], player["width"], player["height"]);
         
       // display     Lives,    Score,    and Level
-      ctx.font = "12px Arial"
+      ctx.font = "15px Arial"
       ctx.fillStyle = "blue";
-      ctx.fillText("Lives: " + game["lives"], 450,25);
-      ctx.fillText("Score: " + game["score"], 25,25);
-      ctx.fillText("Level: " + game["level"], 25,45);
+      ctx.fillText("Lives: " + game["lives"], 430,25);
+      ctx.fillText("Score: " + game["score"], 10,25);
+      ctx.fillText("Level: " + game["level"], 10,45);
         
-      if (game["lives"] == 0) {
+      if (game["lives"] < 1) {
           game["state"] = false;
       }
       else {
@@ -203,9 +271,8 @@
       
       //window.requestAnimationFrame(draw);
     }
-    
-
-    draw();        // FIXME: change game-loop-structure once instructions and game-over screen decided 
+      
+  draw();        // FIXME: change game-loop-structure for instructions and game-over 
      
   </script>
 
